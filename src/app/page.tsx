@@ -1,65 +1,125 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import Link from "next/link";
+import { Bus, MapPin, Clock, ChevronRight } from "lucide-react";
+
+export default function HomePage() {
+  const routes = useQuery(api.routes.list);
+  const activeTrips = useQuery(api.trips.getActiveTrips);
+
+  const activeBusCountForRoute = (routeId: string) => {
+    if (!activeTrips) return 0;
+    return activeTrips.filter((t) => t.routeId === routeId).length;
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <>
+      {/* Header */}
+      <header className="header">
+        <div className="header-title">
+          <Bus size={22} className="header-logo" />
+          <span>SafariBus</span>
+        </div>
+        <Link href="/login" className="btn btn-secondary" style={{ padding: "8px 16px", minHeight: "auto", fontSize: "13px" }}>
+          Login
+        </Link>
+      </header>
+
+      <div className="page">
+        {/* Hero */}
+        <div style={{ marginBottom: 24 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>
+            Track Your Bus
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p style={{ color: "var(--text-muted)", fontSize: 15 }}>
+            See live bus locations and arrival times
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Quick stats */}
+        {activeTrips && (
+          <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
+            <div className="card" style={{ flex: 1, textAlign: "center" }}>
+              <div style={{ fontSize: 28, fontWeight: 800, color: "var(--primary)" }}>
+                {activeTrips.length}
+              </div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Active Buses</div>
+            </div>
+            <div className="card" style={{ flex: 1, textAlign: "center" }}>
+              <div style={{ fontSize: 28, fontWeight: 800, color: "var(--accent)" }}>
+                {routes?.length || 0}
+              </div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Routes</div>
+            </div>
+          </div>
+        )}
+
+        {/* Routes list */}
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>
+          Available Routes
+        </h2>
+
+        {!routes ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="skeleton" style={{ height: 80 }} />
+            ))}
+          </div>
+        ) : routes.length === 0 ? (
+          <div className="empty-state">
+            <MapPin size={48} style={{ margin: "0 auto 12px", opacity: 0.3 }} />
+            <p>No routes available yet</p>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {routes
+              .filter((r) => r.isActive)
+              .map((route) => {
+                const busCount = activeBusCountForRoute(route._id);
+                return (
+                  <Link
+                    key={route._id}
+                    href={`/route/${route._id}`}
+                    className="route-card"
+                  >
+                    <div
+                      className="route-color-dot"
+                      style={{ backgroundColor: route.color || "#3B82F6" }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 2 }}>
+                        {route.name}
+                      </div>
+                      <div style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 12 }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                          <MapPin size={12} />
+                          {route.stops.length} stops
+                        </span>
+                        {busCount > 0 && (
+                          <span className="badge badge-active" style={{ fontSize: 11 }}>
+                            <span className="pulse-dot" style={{ width: 6, height: 6, borderRadius: "50%", background: "#059669", display: "inline-block" }} />
+                            {busCount} bus{busCount > 1 ? "es" : ""} active
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <ChevronRight size={18} style={{ color: "var(--text-muted)" }} />
+                  </Link>
+                );
+              })}
+          </div>
+        )}
+
+        {/* Footer info */}
+        <div style={{ marginTop: 32, textAlign: "center", color: "var(--text-muted)", fontSize: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
+            <Clock size={12} />
+            <span>Updates every 10 seconds</span>
+          </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </>
   );
 }

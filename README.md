@@ -1,36 +1,122 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚌 SafariBus — Rwanda Bus Tracker MVP
 
-## Getting Started
+Real-time bus tracking web app for Rwanda, optimized for low data usage and mobile browsers.
 
-First, run the development server:
+## Features
 
+- **Passengers**: View routes, see live bus locations, get ETA to stops — no login required
+- **Drivers**: Start/stop trips, auto GPS tracking every 10 seconds
+- **Admin**: Manage routes, buses, drivers, view live fleet
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js 16 (App Router) |
+| Backend/DB | Convex (real-time) |
+| Maps | Google Maps API (optional) |
+| Styling | Tailwind CSS + Custom CSS |
+| Icons | Lucide React |
+
+## Quick Start
+
+### 1. Install Dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Set Up Convex
+```bash
+npx convex dev
+```
+This will:
+- Prompt you to log in / create a Convex account
+- Create a new project
+- Generate types and sync your schema
+- Set `NEXT_PUBLIC_CONVEX_URL` in `.env.local`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Start Development Server
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Seed Demo Data
+1. Open http://localhost:3000/login
+2. First, go to http://localhost:3000/admin (the seed function creates initial users)
+3. Or use the Convex dashboard to run the `seed:seedData` mutation
 
-## Learn More
+### 5. Test the Flow
+1. **Admin** — Login with `admin` / `admin123` → Manage routes, buses, drivers
+2. **Driver** — Login with `driver1` / `driver123` → Select bus & route → Start Trip
+3. **Passenger** — Open home page → Select a route → See live bus location & ETA
 
-To learn more about Next.js, take a look at the following resources:
+## Environment Variables
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```env
+# Required: Convex deployment URL (set automatically by `npx convex dev`)
+NEXT_PUBLIC_CONVEX_URL=
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Optional: Google Maps API key for map rendering
+NEXT_PUBLIC_GOOGLE_MAPS_KEY=
+```
 
-## Deploy on Vercel
+## Project Structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+├── convex/
+│   ├── schema.ts          # Database schema (users, routes, buses, trips, locations)
+│   ├── auth.ts            # Login, createUser, listDrivers
+│   ├── routes.ts          # Route CRUD
+│   ├── buses.ts           # Bus CRUD
+│   ├── trips.ts           # Start/end trips, GPS updates, active trip queries
+│   └── seed.ts            # Demo data seeder
+├── src/app/
+│   ├── layout.tsx         # Root layout with Inter font, PWA meta
+│   ├── globals.css        # Mobile-first design system
+│   ├── providers.tsx      # Convex + Auth providers
+│   ├── page.tsx           # Passenger home (route list)
+│   ├── route/[id]/page.tsx # Route detail with live buses & ETA
+│   ├── login/page.tsx     # Driver/Admin login
+│   ├── driver/page.tsx    # Driver interface with GPS tracking
+│   └── admin/page.tsx     # Admin dashboard
+└── public/
+    └── manifest.json      # PWA manifest
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Database Schema
+
+```
+users        → username, password, role (admin|driver), name
+routes       → name, description, stops[], color, isActive
+buses        → plate, model, capacity, status
+trips        → busId, driverId, routeId, startTime, endTime, status, lastLat/Lng
+locations    → tripId, busId, lat, lng, speed, heading, timestamp
+```
+
+## ETA Calculation
+
+Uses Haversine formula for distance + average speed:
+- Default city speed: 20 km/h (realistic for Kigali)
+- Updates with actual GPS speed when available
+- `ETA (min) = distance (km) / speed (km/h) × 60`
+
+## Deployment to Vercel
+
+```bash
+# Deploy Convex to production
+npx convex deploy
+
+# Deploy Next.js to Vercel
+npx vercel
+```
+
+Set `NEXT_PUBLIC_CONVEX_URL` in Vercel environment variables.
+
+## Design Principles
+
+- ✅ Mobile-first, works on low-end Android phones
+- ✅ Large touch targets (min 48px)
+- ✅ Minimal animations for low data usage
+- ✅ Works offline-tolerant (driver queues updates)
+- ✅ No login required for passengers
+- ✅ PWA-ready for home screen install
