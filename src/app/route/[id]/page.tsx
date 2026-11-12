@@ -5,7 +5,7 @@ import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
 import Link from "next/link";
 import { use, useMemo } from "react";
-import { ArrowLeft, Bus, MapPin, Clock, Navigation } from "lucide-react";
+import { ArrowLeft, Bus, MapPin, Clock, Navigation, Map as MapIcon } from "lucide-react";
 
 // Haversine distance in km
 function haversine(
@@ -128,7 +128,8 @@ export default function RoutePage({ params }: { params: Promise<{ id: string }> 
         </div>
 
         {/* Map placeholder */}
-        <div
+        <Link
+          href={`/route/${id}/map`}
           className="map-container map-container-full"
           style={{
             background: "#E8F5E9",
@@ -139,6 +140,7 @@ export default function RoutePage({ params }: { params: Promise<{ id: string }> 
             gap: 8,
             marginBottom: 16,
             position: "relative",
+            textDecoration: "none",
           }}
         >
           <div style={{
@@ -153,11 +155,14 @@ export default function RoutePage({ params }: { params: Promise<{ id: string }> 
           }}>
             <Navigation size={32} style={{ color: "var(--primary)", opacity: 0.5 }} />
             <p style={{ fontSize: 13, color: "var(--text-muted)" }}>
-              Map requires Google Maps API key
+              See buses and stops plotted on a live map
             </p>
-            <p style={{ fontSize: 11, color: "var(--text-muted)" }}>
-              Set NEXT_PUBLIC_GOOGLE_MAPS_KEY in .env.local
-            </p>
+            <span
+              className="btn btn-primary"
+              style={{ padding: "8px 16px", minHeight: "auto", fontSize: 13 }}
+            >
+              <MapIcon size={14} /> View Live Map
+            </span>
           </div>
 
           {/* Show bus markers as overlays */}
@@ -187,7 +192,7 @@ export default function RoutePage({ params }: { params: Promise<{ id: string }> 
               </span>
             </div>
           ))}
-        </div>
+        </Link>
 
         {/* Active buses */}
         {busData.length > 0 ? (

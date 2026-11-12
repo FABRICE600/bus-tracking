@@ -3,7 +3,7 @@
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import Link from "next/link";
-import { Bus, MapPin, Clock, ChevronRight } from "lucide-react";
+import { Bus, MapPin, Clock, ChevronRight, Ticket } from "lucide-react";
 
 export default function HomePage() {
   const routes = useQuery(api.routes.list);
@@ -37,6 +37,42 @@ export default function HomePage() {
             See live bus locations and arrival times
           </p>
         </div>
+
+        {/* Booking entry */}
+        <Link
+          href="/book"
+          className="route-card"
+          style={{
+            marginBottom: 24,
+            borderColor: "var(--primary)",
+            borderWidth: 2,
+            background: "linear-gradient(135deg, #ECFDF5 0%, #FFFFFF 100%)",
+          }}
+        >
+          <div
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 12,
+              background: "var(--primary)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <Ticket size={22} color="white" />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 2 }}>
+              Book a Seat
+            </div>
+            <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
+              Search departures and reserve your seat
+            </div>
+          </div>
+          <ChevronRight size={18} style={{ color: "var(--text-muted)" }} />
+        </Link>
 
         {/* Quick stats */}
         {activeTrips && (

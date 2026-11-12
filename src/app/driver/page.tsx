@@ -16,7 +16,10 @@ import {
   LogOut,
   MapPin,
   Gauge,
+  Calendar,
+  Phone,
 } from "lucide-react";
+import { supabase, DriverSchedule } from "../../lib/supabase";
 
 export default function DriverPage() {
   const { user, logout, isLoading } = useAuth();
@@ -32,6 +35,7 @@ export default function DriverPage() {
   const watchIdRef = useRef<number | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastPositionRef = useRef<{ lat: number; lng: number; speed: number; heading: number } | null>(null);
+  const [schedules, setSchedules] = useState<DriverSchedule[] | null>(null);
 
   const buses = useQuery(api.buses.list);
   const routes = useQuery(api.routes.list);
@@ -55,6 +59,17 @@ export default function DriverPage() {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
+  }, []);
+
+  // Load all driver schedules for the roster panel
+  useEffect(() => {
+    supabase
+      .from("driver_schedules")
+      .select("*")
+      .gte("shift_date", new Date().toISOString().slice(0, 10))
+      .order("shift_date", { ascending: true })
+      .order("start_time", { ascending: true })
+      .then(({ data }) => setSchedules(data ?? []));
   }, []);
 
   // Redirect if not driver
@@ -349,6 +364,111 @@ export default function DriverPage() {
           }}
         >
           💡 Make sure your GPS is enabled before starting a trip
+        </div>
+
+        {/* Driver roster & schedule */}
+        <div style={{ marginTop: 28 }}>
+          <h2
+            style={{
+              fontSize: 16,
+              fontWeight: 700,
+              marginBottom: 12,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <Calendar size={18} />
+            Team Schedules
+          </h2>
+
+          {!schedules ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="skeleton" style={{ height: 80 }} />
+              ))}
+            </div>
+          ) : schedules.length === 0 ? (
+            <div className="empty-state">
+              <Calendar size={48} style={{ margin: "0 auto 12px", opacity: 0.3 }} />
+              <p>No shifts scheduled yet</p>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {schedules.map((s) => {
+                const isToday = s.shift_date === new Date().toISOString().slice(0, 10);
+                return (
+                  <div key={s.id} className="card">
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        marginBottom: 6,
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 15 }}>
+                          {s.driver_name}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 13,
+                            color: "var(--text-muted)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                            marginTop: 2,
+                          }}
+                        >
+                          <Phone size={11} />
+                          {s.phone}
+                        </div>
+                      </div>
+                      <span
+                        className={`badge ${
+                          s.status === "on_duty"
+                            ? "badge-active"
+                            : s.status === "completed"
+                              ? "badge-idle"
+                              : "badge-idle"
+                        }`}
+                      >
+                        {isToday ? "Today" : "Tomorrow"} ·{" "}
+                        {s.status === "on_duty"
+                          ? "On duty"
+                          : s.status === "completed"
+                            ? "Done"
+                            : "Scheduled"}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        color: "var(--text-muted)",
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 10,
+                      }}
+                    >
+                      <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <MapPin size={12} />
+                        {s.route_name}
+                      </span>
+                      <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <Bus size={12} />
+                        {s.bus_plate}
+                      </span>
+                      <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <Calendar size={12} />
+                        {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </>
