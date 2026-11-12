@@ -1,12 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --primary: #10B981;
-  --primary-dark: #059669;
+  --primary: #059669;
+  --primary-dark: #047857;
   --primary-light: #34D399;
   --accent: #F59E0B;
   --danger: #EF4444;
-  --bg: #F8FAFC;
+  --bg: #F4F7F6;
+  --header-grad: linear-gradient(135deg, #0F172A 0%, #065F46 100%);
   --bg-card: #FFFFFF;
   --text: #0F172A;
   --text-muted: #64748B;
@@ -14,8 +15,8 @@
   --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
   --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
   --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.05);
-  --radius: 12px;
-  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-sm: 10px;
 }
 
 * {
@@ -45,7 +46,7 @@ body {
   justify-content: center;
   gap: 8px;
   padding: 12px 24px;
-  border-radius: var(--radius-sm);
+  border-radius: 10px;
   font-weight: 600;
   font-size: 15px;
   cursor: pointer;
@@ -104,6 +105,7 @@ body {
   border-radius: var(--radius);
   padding: 16px;
   box-shadow: var(--shadow);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .input {
@@ -170,9 +172,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  background: white;
-  border-bottom: 1px solid var(--border);
+  padding: 14px 16px;
+  background: var(--header-grad);
+  color: white;
   position: sticky;
   top: 0;
   z-index: 50;
@@ -184,10 +186,21 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  color: white;
 }
 
 .header-logo {
-  color: var(--primary);
+  color: var(--primary-light);
+}
+
+.header .btn-secondary {
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.header .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.22);
 }
 
 /* Status badges */
@@ -234,6 +247,7 @@ body {
 .route-card:hover {
   box-shadow: var(--shadow-md);
   border-color: var(--primary-light);
+  transform: translateY(-2px);
 }
 
 .route-card:active {
@@ -570,6 +584,8 @@ body {
   background: white;
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  border-top: 3px solid var(--primary);
+  box-shadow: var(--shadow);
 }
 
 .stat-value {

@@ -56,8 +56,9 @@ export default function AdminPage() {
     name: "",
   });
 
+  // Any signed-in user can use the admin dashboard (permission granted)
   useEffect(() => {
-    if (!isLoading && (!user || user.role !== "admin")) {
+    if (!isLoading && !user) {
       router.push("/login");
     }
   }, [user, isLoading, router]);
@@ -106,7 +107,7 @@ export default function AdminPage() {
         name: "",
         description: "",
         stops: [{ name: "", lat: "", lng: "", order: 1 }],
-        color: "#10B981",
+        color: "#059669",
       });
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed");

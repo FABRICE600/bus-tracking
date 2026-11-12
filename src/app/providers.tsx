@@ -1,9 +1,9 @@
 "use client";
 
 import { ConvexProvider, ConvexReactClient } from "convex/react";
-import { ReactNode, createContext, useContext, useState, useEffect } from "react";
+import { ReactNode, createContext, useContext, useState, useEffect, useMemo } from "react";
 
-const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL || "https://placeholder.convex.cloud";
 
 // Simple auth context — stores user in localStorage for MVP
 interface User {
@@ -65,6 +65,8 @@ function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 export default function Providers({ children }: { children: ReactNode }) {
+  const convex = useMemo(() => new ConvexReactClient(convexUrl), []);
+
   return (
     <ConvexProvider client={convex}>
       <AuthProvider>{children}</AuthProvider>
