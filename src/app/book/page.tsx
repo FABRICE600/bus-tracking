@@ -94,33 +94,20 @@ export default function BookPage() {
     setReserving(true);
     setBookingError("");
 
-    const ref = `SB-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
-
-    const { data: booking, error: bookingError } = await supabase
-      .from("bookings")
-      .insert({
-        trip_id: selectedTrip.id,
-        passenger_name: passengerName.trim(),
-        phone: phone.trim(),
-        seat_count: seatCount,
-        booking_ref: ref,
-      })
-      .select()
-      .maybeSingle();
+    const { data: booking, error: bookingError } = await supabase.rpc(
+      "reserve_seat",
+      {
+        p_trip_id: selectedTrip.id,
+        p_passenger_name: passengerName.trim(),
+        p_phone: phone.trim(),
+        p_seat_count: seatCount,
+      }
+    );
 
     if (bookingError || !booking) {
-      setBookingError("Booking failed. Please try again.");
-      setReserving(false);
-      return;
-    }
-
-    const { error: updateError } = await supabase
-      .from("scheduled_trips")
-      .update({ seats_booked: selectedTrip.seats_booked + seatCount })
-      .eq("id", selectedTrip.id);
-
-    if (updateError) {
-      setBookingError("Booking saved but seat count could not be updated.");
+      setBookingError(
+        bookingError?.message ?? "Booking failed. Please try again."
+      );
       setReserving(false);
       return;
     }
@@ -135,7 +122,12 @@ export default function BookPage() {
       (prev) =>
         prev?.map((t) =>
           t.id === selectedTrip.id
-            ? { ...t, seats_booked: t.seats_booked + seatCount }
+            ? {
+                ...t,
+                seats_booked: t.seats_booked + seatCount,
+                status:
+                  t.seats_booked + seatCount >= t.capacity ? "full" : t.status,
+              }
             : t
         ) ?? null
     );
